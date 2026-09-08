@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◈ ARIA – POST</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060a10;font-family:'Segoe UI',system-ui,sans-serif;color:#e2e8f0}
+#app{display:flex;flex-direction:column;height:100vh;min-height:560px}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a2535;background:#060a10;flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.hdr-logo{font-size:20px;color:#f59e0b}
+.hdr-name{font-size:15px;font-weight:700;letter-spacing:0.15em;color:#f8fafc}
+.hdr-tag{font-size:9px;background:#f59e0b10;border:1px solid #f59e0b30;color:#f59e0b;padding:1px 7px;border-radius:4px}
+.hdr-r{display:flex;align-items:center;gap:8px}
+#hdr-count{font-size:14px;font-weight:700;color:#f59e0b;display:none}
+.online{display:flex;align-items:center;gap:5px}
+.odot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e}
+.otxt{font-size:9px;color:#22c55e;letter-spacing:0.1em}
+.body{display:flex;flex:1;overflow:hidden}
+aside{width:270px;min-width:250px;border-right:1px solid #1a2535;padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;background:#080d14;flex-shrink:0}
+.lbl{font-size:9px;letter-spacing:0.2em;color:#3d5166}
+textarea{width:100%;background:#0a1018;border:1px solid #1a2535;border-radius:8px;padding:9px 11px;color:#e2e8f0;font-size:12px;resize:none;line-height:1.6;font-family:'Segoe UI',system-ui,sans-serif;outline:none}
+textarea:focus{border-color:#f59e0b55}
+.btn-search{width:100%;padding:10px;background:#f59e0b;color:#080c12;border:none;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:0.08em;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.btn-search:disabled{background:#1a2535;color:#4a5568;cursor:not-allowed}
+.ex{display:flex;align-items:flex-start;gap:5px;width:100%;background:transparent;border:1px solid #1a2535;border-radius:6px;padding:7px 9px;color:#64748b;font-size:10px;cursor:pointer;text-align:left;line-height:1.5;font-family:'Segoe UI',system-ui,sans-serif}
+.ex:hover{background:#0c1621;color:#94a3b8;border-color:#2a3a4a}
+.ex span{color:#f59e0b;flex-shrink:0}
+.hbtn{display:flex;justify-content:space-between;width:100%;background:none;border:none;border-bottom:1px solid #0f1820;color:#4a5568;font-size:9px;text-align:left;cursor:pointer;padding:4px 0;font-family:'Segoe UI',system-ui,sans-serif}
+.hbtn:hover{color:#64748b}
+main{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:11px}
+.summary{background:#0c1621;border:1px solid #1a2535;border-radius:8px;padding:8px 12px;font-size:11px;color:#94a3b8;display:flex;gap:7px}
+.save-all{padding:8px 14px;font-size:11px;border-radius:8px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif;font-weight:600;border:1px solid #f59e0b40;background:#f59e0b10;color:#f59e0b;display:none}
+.save-all:hover{background:#f59e0b1a}
+.save-all.done{background:#22c55e10;border-color:#22c55e40;color:#22c55e;cursor:default}
+.err{background:#ef444410;border:1px solid #ef444430;border-radius:8px;padding:8px 12px;font-size:11px;color:#ef4444;display:none}
+.loading{display:none;flex-direction:column;align-items:center;justify-content:center;padding:60px;gap:14px}
+.loading.show{display:flex}
+.dots{display:flex;gap:5px}
+.dp{width:6px;height:6px;border-radius:50%;background:#f59e0b;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:60px;gap:10px;opacity:0.3}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:11px}
+.card{background:#0c1621;border:1px solid #1e2d3d;border-radius:10px;padding:13px;display:flex;flex-direction:column;gap:9px}
+.card-top{display:flex;gap:10px;align-items:flex-start}
+.score-box{border-radius:8px;padding:5px 9px;display:flex;flex-direction:column;align-items:center;min-width:48px;flex-shrink:0}
+.score-n{font-size:20px;font-weight:800;line-height:1}
+.score-l{font-size:8px;letter-spacing:0.12em}
+.card-name{font-size:14px;font-weight:700;color:#f1f5f9;word-break:break-word}
+.badges{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center}
+.badge{font-size:9px;background:#1a2535;padding:1px 6px;border-radius:3px;color:#94a3b8}
+.loc{font-size:10px;color:#4a5568}
+.dlbl{font-size:8px;letter-spacing:0.2em;color:#3d5166}
+.diag{font-size:11px;color:#94a3b8;line-height:1.65}
+.ops{display:flex;flex-wrap:wrap;gap:4px}
+.op{font-size:9px;padding:2px 7px;border-radius:3px}
+.extra{display:none;flex-wrap:wrap;gap:5px;border-top:1px solid #1a2535;padding-top:7px}
+.extra.show{display:flex}
+.el{font-size:10px;text-decoration:none;padding:2px 8px;border-radius:3px;border:1px solid #1a2535;color:#64748b;background:#0a1018}
+.el:hover{color:#94a3b8}
+.cf{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px}
+.tbtn{background:none;border:none;color:#3d5166;font-size:10px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.cbr{display:flex;gap:5px}
+.wa{background:#25D36614;border:1px solid #25D36630;color:#25D366;font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.sv{background:#1a2535;border:1px solid #2a3a4a;color:#94a3b8;font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif;white-space:nowrap}
+.sv.done{background:#22c55e10;border-color:#22c55e40;color:#22c55e;cursor:default}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;padding:16px}
+.ov.show{display:flex}
+.modal{background:#0d1520;border:1px solid #1a2535;border-radius:12px;width:100%;max-width:460px}
+.mh{padding:12px 16px;border-bottom:1px solid #1a2535;display:flex;align-items:center;gap:8px}
+.mb{padding:16px;display:flex;flex-direction:column;gap:11px}
+.mmsg{background:#080c12;border:1px solid #1a2535;border-radius:8px;padding:12px 14px;font-size:12px;color:#e2e8f0;line-height:1.8}
+.mbtns{display:flex;gap:8px}
+.cpbtn{flex:1;background:#1a2535;border:1px solid #2a3a4a;color:#94a3b8;font-size:11px;padding:9px;border-radius:6px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.cpbtn.done{background:#22c55e10;border-color:#22c55e40;color:#22c55e}
+.waopen{flex:1;text-align:center;background:#25D36614;border:1px solid #25D36630;color:#25D366;font-size:11px;padding:9px;border-radius:6px;text-decoration:none;display:block}
+.xbtn{background:none;border:none;color:#4a5568;cursor:pointer;font-size:14px}
+/* API Key setup screen */
+#setup{display:flex;align-items:center;justify-content:center;height:100vh;background:#060a10}
+.setup-card{background:#0c1621;border:1px solid #1e2d3d;border-radius:16px;padding:40px;max-width:400px;width:90%;text-align:center}
+.setup-logo{font-size:48px;color:#f59e0b;margin-bottom:10px}
+.setup-title{font-size:24px;font-weight:700;letter-spacing:0.15em;color:#f8fafc;margin-bottom:4px}
+.setup-sub{font-size:10px;letter-spacing:0.2em;color:#3d5166;margin-bottom:6px}
+.setup-tag{display:inline-block;background:#f59e0b10;border:1px solid #f59e0b30;color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:4px;margin-bottom:28px}
+.setup-lbl{font-size:9px;letter-spacing:0.15em;color:#3d5166;text-align:left;display:block;margin-bottom:7px}
+.setup-input{width:100%;background:#080c12;border:1px solid #1a2535;border-radius:8px;padding:11px 13px;color:#e2e8f0;font-size:13px;font-family:monospace;outline:none;margin-bottom:12px}
+.setup-input:focus{border-color:#f59e0b44}
+.setup-btn{width:100%;padding:13px;background:#f59e0b;color:#080c12;border:none;border-radius:8px;font-size:14px;font-weight:700;letter-spacing:0.08em;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.setup-btn:hover{opacity:0.88}
+.setup-hint{font-size:10px;color:#2a3a4a;margin-top:14px;line-height:1.7}
+.setup-hint a{color:#3d5166}
+.reset-key{background:none;border:1px solid #1a2535;border-radius:5px;color:#3d5166;font-size:9px;padding:3px 8px;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif}
+.reset-key:hover{color:#64748b}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-card">
+    <div class="setup-logo">◈</div>
+    <div class="setup-title">ARIA</div>
+    <div class="setup-sub">AGENTE DE RECONHECIMENTO E IDENTIFICAÇÃO DE ALVOS</div>
+    <div class="setup-tag">POST – SOLUÇÕES DIGITAIS</div>
+    <span class="setup-lbl">ANTHROPIC API KEY</span>
+    <input class="setup-input" type="password" id="key-input" placeholder="sk-ant-api03-..." />
+    <button class="setup-btn" onclick="enterApp()">ENTRAR NA ARIA →</button>
+    <p class="setup-hint">Chave guardada apenas neste browser.<br>Obtém em <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="hdr">
+    <div class="hdr-l">
+      <span class="hdr-logo">◈</span>
+      <span class="hdr-name">ARIA</span>
+      <span class="hdr-tag">POST</span>
+    </div>
+    <div class="hdr-r">
+      <span id="hdr-count"></span>
+      <button class="reset-key" onclick="resetKey()">⚙ API Key</button>
+      <div class="online"><span class="odot"></span><span class="otxt">ONLINE</span></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <aside>
+      <span class="lbl">DESCREVE O TEU ICP</span>
+      <textarea id="q" rows="4" placeholder="Ex: restaurantes no Porto com fraca presença digital..."></textarea>
+      <button class="btn-search" id="bsearch" onclick="doSearch()">PROCURAR ALVOS →</button>
+      <span class="lbl">EXEMPLOS RÁPIDOS</span>
+      <button class="ex" onclick="doSearch('Clínicas de estética no Porto sem presença digital')"><span>→</span>Clínicas de estética no Porto sem presença digital</button>
+      <button class="ex" onclick="doSearch('Restaurantes em Braga com poucos seguidores no Instagram')"><span>→</span>Restaurantes em Braga com poucos seguidores no Instagram</button>
+      <button class="ex" onclick="doSearch('Ginásios em Gaia sem anúncios Meta')"><span>→</span>Ginásios em Gaia sem anúncios Meta</button>
+      <button class="ex" onclick="doSearch('Lojas de roupa locais sem website atualizado')"><span>→</span>Lojas de roupa locais sem website atualizado</button>
+      <button class="ex" onclick="doSearch('Imobiliárias no Porto sem Google My Business')"><span>→</span>Imobiliárias no Porto sem Google My Business</button>
+      <button class="ex" onclick="doSearch('Pet shops em Lisboa sem redes sociais ativas')"><span>→</span>Pet shops em Lisboa sem redes sociais ativas</button>
+      <div id="hist-section" style="display:none">
+        <span class="lbl" style="display:block;margin-bottom:6px">HISTÓRICO</span>
+        <div id="hist"></div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <div class="summary" id="sumbox" style="display:none"><span style="color:#f59e0b;flex-shrink:0">◎</span><span id="sumtxt"></span></div>
+      <button class="save-all" id="bsaveall" onclick="saveAll()"></button>
+      <div class="err" id="errbox"></div>
+      <div class="loading" id="loadbox">
+        <div class="dots">
+          <span class="dp" style="animation-delay:0s"></span>
+          <span class="dp" style="animation-delay:.15s"></span>
+          <span class="dp" style="animation-delay:.3s"></span>
+          <span class="dp" style="animation-delay:.45s"></span>
+          <span class="dp" style="animation-delay:.6s"></span>
+        </div>
+        <span style="font-size:12px;color:#64748b">A ARIA está a varrer a internet...</span>
+        <span style="font-size:10px;color:#3d5166">A analisar a presença digital de empresas portuguesas</span>
+      </div>
+      <div class="empty" id="emptybox">
+        <span style="font-size:48px;color:#f59e0b">◈</span>
+        <span style="font-size:15px;font-weight:700;color:#94a3b8">Prontos para a caça</span>
+        <span style="font-size:11px;color:#4a5568;text-align:center;line-height:1.8">Descreve o perfil de empresa que procuras.<br>A ARIA faz o resto.</span>
+      </div>
+      <div class="grid" id="grid"></div>
+    </main>
+  </div>
+</div>
+
+<!-- WA MODAL -->
+<div class="ov" id="waov" onclick="closeWA()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mh">
+      <span style="color:#25D366;font-size:14px">◉</span>
+      <span id="wa-name" style="flex:1;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f1f5f9"></span>
+      <button class="xbtn" onclick="closeWA()">✕</button>
+    </div>
+    <div class="mb">
+      <span class="lbl">MENSAGEM DE ABERTURA SUGERIDA</span>
+      <div id="wa-msg" class="mmsg"></div>
+      <div class="mbtns">
+        <button id="cpbtn" class="cpbtn" onclick="copyWA()">Copiar mensagem</button>
+        <a id="wa-link" class="waopen" href="#" target="_blank" rel="noreferrer" style="display:none">Abrir WhatsApp →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_STORE = 'aria_api_key';
+const AT_BASE   = 'appzFXTQP9Rki4rMF';
+const AT_TABLE  = 'tblnsFNCKnYdpAFwq';
+const F = {
+  nome:'fldDxkA5WHm7ayQfC',setor:'fldAubDvGgiQnPvGG',localizacao:'fldvIkHlMqKdQkHsl',
+  score:'fldoLOWqmX8qWA6OC',score_label:'fldJIZVwUJ9AQsa2I',diagnostico:'fldWmpiCSI54iD70i',
+  oportunidades:'flduPpndSnTqpZ5HY',abertura_whatsapp:'fldYe0pyop8tTcz6A',telefone:'fldvbi4ZvCjfBSSuU',
+  website:'fldNwl19KJZPFrvRV',instagram:'fldOWQqUhN0gO1C9O',facebook:'fld61CuGDkI63JRNh',
+  google_maps:'fldXQ9Qj9NNSXyeX9',pesquisa_origem:'fldSmXIpGnNtbqrFH',
+  data_captura:'fldkjPyOQi0clXp8C',estado:'flde8K2X5X3g2vesA'
+};
+
+const SYS=`Você é ARIA — Agente de Reconhecimento e Identificação de Alvos — assistente de prospeção B2B da agência POST (Vila Nova de Gaia, Portugal).
+A POST oferece: gestão de redes sociais, Meta Ads, Google Ads e Google My Business para PMEs portuguesas.
+Usa web_search para encontrar empresas REAIS em Portugal. Analisa presença digital de cada uma.
+Responde APENAS com JSON válido sem markdown:
+{"leads":[{"nome":"","setor":"","localizacao":"","website":null,"instagram":null,"facebook":null,"google_maps":null,"telefone":null,"diagnostico":"min 2 frases concretas sobre lacunas digitais","oportunidades":["Meta Ads"],"score":8,"abertura_whatsapp":"Olá [Nome]! Reparei que..."}],"resumo":"","total":5}
+Score 1-10 (10=máximo potencial). 3-6 leads. oportunidades: "Meta Ads","Google Ads","Google My Business","Gestão de Redes Sociais","Website"`;
+
+let leads=[],curQ='',saved=new Set(),hist=[],waLead=null,API_KEY='';
+const sc=s=>s>=8?'#22c55e':s>=5?'#f59e0b':'#ef4444';
+const sl=s=>s>=8?'HOT':s>=5?'WARM':'COLD';
+
+// Setup
+window.onload=function(){
+  const k=localStorage.getItem(KEY_STORE);
+  if(k){API_KEY=k;showApp();}
+};
+function enterApp(){
+  const k=document.getElementById('key-input').value.trim();
+  if(!k||!k.startsWith('sk-')){alert('Cola uma API key válida (começa com sk-)');return;}
+  localStorage.setItem(KEY_STORE,k);API_KEY=k;showApp();
+}
+function showApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+}
+function resetKey(){
+  localStorage.removeItem(KEY_STORE);API_KEY='';
+  document.getElementById('setup').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('key-input').value='';
+}
+
+async function doSearch(q){
+  const sq=(q||document.getElementById('q').value).trim();
+  if(!sq) return;
+  leads=[];curQ=sq;saved=new Set();
+  if(!q) document.getElementById('q').value='';
+  addHist(sq);
+  document.getElementById('bsearch').disabled=true;
+  document.getElementById('bsearch').textContent='⟳ A varrer...';
+  document.getElementById('loadbox').classList.add('show');
+  document.getElementById('emptybox').style.display='none';
+  document.getElementById('sumbox').style.display='none';
+  document.getElementById('errbox').style.display='none';
+  document.getElementById('bsaveall').style.display='none';
+  document.getElementById('grid').innerHTML='';
+  document.getElementById('hdr-count').style.display='none';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:SYS,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:sq}]})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    const txt=d.content?.find(b=>b.type==='text')?.text||'';
+    const p=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    leads=p.leads||[];
+    if(p.resumo){document.getElementById('sumtxt').textContent=p.resumo;document.getElementById('sumbox').style.display='flex';}
+    renderLeads();
+  }catch(e){
+    document.getElementById('errbox').textContent='Erro: '+(e.message||'verifica a API key e tenta novamente.');
+    document.getElementById('errbox').style.display='block';
+    document.getElementById('emptybox').style.display='flex';
+  }
+  document.getElementById('loadbox').classList.remove('show');
+  document.getElementById('bsearch').disabled=false;
+  document.getElementById('bsearch').textContent='PROCURAR ALVOS →';
+}
+
+function renderLeads(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  if(!leads.length){document.getElementById('emptybox').style.display='flex';return;}
+  document.getElementById('hdr-count').textContent=leads.length+' leads';
+  document.getElementById('hdr-count').style.display='inline';
+  const sa=document.getElementById('bsaveall');
+  sa.textContent='↗ Guardar todos os '+leads.length+' leads no Airtable';
+  sa.style.display='block';sa.classList.remove('done');
+  leads.forEach((l,i)=>{
+    const c=sc(l.score);
+    const ops=(l.oportunidades||[]).map(o=>`<span class="op" style="background:${c}10;border:1px solid ${c}30;color:${c}">${o}</span>`).join('');
+    const div=document.createElement('div');div.className='card';div.id='card'+i;
+    div.innerHTML=`
+      <div class="card-top">
+        <div class="score-box" style="background:${c}18;border:1px solid ${c}44">
+          <span class="score-n" style="color:${c}">${l.score}</span>
+          <span class="score-l" style="color:${c}">${sl(l.score)}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <p class="card-name">${l.nome}</p>
+          <div class="badges">
+            ${l.setor?`<span class="badge">${l.setor}</span>`:''}
+            ${l.localizacao?`<span class="loc">📍 ${l.localizacao}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <span class="dlbl">DIAGNÓSTICO DIGITAL</span>
+      <p class="diag">${l.diagnostico}</p>
+      ${ops?`<div class="ops">${ops}</div>`:''}
+      <div class="extra" id="ex${i}">
+        ${l.website?`<a href="${l.website}" target="_blank" rel="noreferrer" class="el">🌐 Site</a>`:''}
+        ${l.instagram?`<a href="https://instagram.com/${l.instagram.replace('@','')}" target="_blank" rel="noreferrer" class="el">📷 ${l.instagram}</a>`:''}
+        ${l.facebook?`<a href="${l.facebook}" target="_blank" rel="noreferrer" class="el">📘 FB</a>`:''}
+        ${l.google_maps?`<a href="${l.google_maps}" target="_blank" rel="noreferrer" class="el">🗺 Maps</a>`:''}
+        ${l.telefone?`<span class="el">📞 ${l.telefone}</span>`:''}
+      </div>
+      <div class="cf">
+        <button class="tbtn" id="tb${i}" onclick="toggleEx(${i})">▼ mais info</button>
+        <div class="cbr">
+          <button class="wa" onclick="openWA(${i})">◉ WhatsApp</button>
+          <button class="sv" id="sv${i}" onclick="saveLead(${i})">↗ Guardar</button>
+        </div>
+      </div>`;
+    g.appendChild(div);
+  });
+}
+
+function toggleEx(i){
+  const el=document.getElementById('ex'+i),tb=document.getElementById('tb'+i);
+  el.classList.toggle('show');
+  tb.textContent=el.classList.contains('show')?'▲ menos info':'▼ mais info';
+}
+
+async function saveLead(i){
+  if(saved.has(i)) return;
+  const btn=document.getElementById('sv'+i);
+  btn.textContent='⟳ A guardar...';btn.style.cursor='not-allowed';
+  const ok=await saveToAirtable(leads[i],curQ);
+  if(ok){
+    saved.add(i);
+    btn.textContent='✓ Guardado';btn.classList.add('done');
+    if(saved.size===leads.length) markAllDone();
+  } else {
+    btn.textContent='✕ Erro';btn.style.color='#ef4444';btn.style.borderColor='#ef444440';
+    setTimeout(()=>{btn.textContent='↗ Guardar';btn.style.color='';btn.style.borderColor='';btn.style.cursor='';},3000);
+  }
+}
+
+async function saveAll(){
+  const unsaved=leads.map((_,i)=>i).filter(i=>!saved.has(i));
+  if(!unsaved.length) return;
+  const sa=document.getElementById('bsaveall');
+  sa.textContent='⟳ A guardar...';sa.style.cursor='not-allowed';
+  let ok=true;
+  for(const i of unsaved){
+    const res=await saveToAirtable(leads[i],curQ);
+    if(res){
+      saved.add(i);
+      const b=document.getElementById('sv'+i);
+      if(b){b.textContent='✓ Guardado';b.classList.add('done');}
+    } else { ok=false; }
+  }
+  if(ok) markAllDone();
+  else {sa.textContent='↗ Guardar todos (alguns falharam)';sa.style.cursor='';}
+}
+
+async function saveToAirtable(lead,q){
+  try{
+    const fields={};
+    fields[F.nome]=lead.nome||'';
+    fields[F.setor]=lead.setor||'';
+    fields[F.localizacao]=lead.localizacao||'';
+    fields[F.score]=lead.score||0;
+    fields[F.score_label]=lead.score>=8?'HOT':lead.score>=5?'WARM':'COLD';
+    fields[F.diagnostico]=lead.diagnostico||'';
+    fields[F.oportunidades]=lead.oportunidades||[];
+    fields[F.abertura_whatsapp]=lead.abertura_whatsapp||'';
+    if(lead.telefone) fields[F.telefone]=lead.telefone;
+    if(lead.website) fields[F.website]=lead.website;
+    if(lead.instagram) fields[F.instagram]=lead.instagram;
+    if(lead.facebook) fields[F.facebook]=lead.facebook;
+    if(lead.google_maps) fields[F.google_maps]=lead.google_maps;
+    fields[F.pesquisa_origem]=q||'';
+    fields[F.data_captura]=new Date().toISOString();
+    fields[F.estado]='Novo';
+    const r=await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('aria_at_key')},
+      body:JSON.stringify({fields,typecast:true})
+    });
+    const d=await r.json();
+    return !!d.id;
+  }catch(e){return false;}
+}
+
+function markAllDone(){
+  const sa=document.getElementById('bsaveall');
+  sa.textContent='✓ Todos os '+leads.length+' leads guardados no Airtable';
+  sa.classList.add('done');
+}
+
+function openWA(i){
+  waLead=leads[i];
+  document.getElementById('wa-name').textContent=waLead.nome;
+  document.getElementById('wa-msg').textContent=waLead.abertura_whatsapp;
+  const wl=document.getElementById('wa-link');
+  if(waLead.telefone){wl.href='https://wa.me/351'+waLead.telefone.replace(/\D/g,'')+'?text='+encodeURIComponent(waLead.abertura_whatsapp);wl.style.display='block';}
+  else wl.style.display='none';
+  document.getElementById('cpbtn').textContent='Copiar mensagem';
+  document.getElementById('cpbtn').classList.remove('done');
+  document.getElementById('waov').classList.add('show');
+}
+function closeWA(){document.getElementById('waov').classList.remove('show');}
+function copyWA(){
+  navigator.clipboard.writeText(waLead.abertura_whatsapp);
+  const b=document.getElementById('cpbtn');
+  b.textContent='✓ Copiado!';b.classList.add('done');
+  setTimeout(()=>{b.textContent='Copiar mensagem';b.classList.remove('done');},2000);
+}
+
+function addHist(q){
+  hist=[q,...hist.filter(x=>x!==q)].slice(0,6);
+  const h=document.getElementById('hist');h.innerHTML='';
+  hist.forEach(x=>{
+    const b=document.createElement('button');b.className='hbtn';
+    b.innerHTML=`<span>↺ ${x}</span><span style="color:#3d5166">→</span>`;
+    b.onclick=()=>doSearch(x);h.appendChild(b);
+  });
+  document.getElementById('hist-section').style.display='block';
+}
+
+document.getElementById('key-input').addEventListener('keydown',e=>{if(e.key==='Enter') enterApp();});
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('q').addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSearch();}
+  });
+});
+
+// Airtable key setup (second time or from localStorage)
+window.addEventListener('load',()=>{
+  if(!localStorage.getItem('aria_at_key')){
+    const atk=prompt('Cola o teu Airtable Personal Access Token (necessário para guardar leads):\n\nObtém em: airtable.com/create/tokens');
+    if(atk) localStorage.setItem('aria_at_key',atk);
+  }
+});
+</script>
+</body>
+</html>
