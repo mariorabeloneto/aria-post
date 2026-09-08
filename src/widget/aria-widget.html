@@ -1,0 +1,188 @@
+<!--
+  ◈ ARIA — Widget Claude.ai
+  POST – Soluções Digitais
+
+  COMO USAR:
+  Este ficheiro é para ser usado dentro do Claude.ai via show_widget.
+  Ao clicar "PROCURAR ALVOS", envia a query via sendPrompt para o chat.
+  Claude faz a pesquisa web e guarda no Airtable via MCP nativo.
+
+  NÃO requer API keys nem configuração do utilizador.
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060a10;font-family:'Segoe UI',system-ui,sans-serif;color:#e2e8f0}
+
+/* Layout */
+#app{display:flex;flex-direction:column;min-height:400px}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a2535;background:#060a10}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.logo{font-size:20px;color:#f59e0b}
+.name{font-size:15px;font-weight:700;letter-spacing:0.15em;color:#f8fafc}
+.tag{font-size:9px;background:#f59e0b10;border:1px solid #f59e0b30;color:#f59e0b;padding:1px 7px;border-radius:4px}
+.vox{font-size:8px;background:#a855f710;border:1px solid #a855f730;color:#a855f7;padding:1px 6px;border-radius:3px}
+.online{display:flex;align-items:center;gap:5px}
+.odot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e}
+.otxt{font-size:9px;color:#22c55e;letter-spacing:0.1em}
+
+/* Search area */
+.search-area{padding:20px;display:flex;flex-direction:column;gap:12px;max-width:620px;margin:0 auto;width:100%}
+.lbl{font-size:9px;letter-spacing:0.2em;color:#3d5166}
+textarea{
+  width:100%;background:#0a1018;
+  border:1px solid #1a2535;border-radius:8px;
+  padding:10px 12px;color:#e2e8f0;font-size:13px;
+  resize:none;line-height:1.6;font-family:inherit;outline:none;
+  transition:border-color 0.2s
+}
+textarea:focus{border-color:#f59e0b55}
+textarea:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Buttons */
+.btn-go{
+  width:100%;padding:12px;
+  background:#f59e0b;color:#080c12;
+  border:none;border-radius:8px;
+  font-size:13px;font-weight:700;letter-spacing:0.08em;
+  cursor:pointer;font-family:inherit;transition:opacity 0.2s
+}
+.btn-go:hover{opacity:0.88}
+.btn-go:disabled{background:#1a2535;color:#4a5568;cursor:not-allowed;opacity:1}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:10px;color:#2a3a4a;font-size:10px}
+.divider::before,.divider::after{content:'';flex:1;border-top:1px solid #1a2535}
+
+/* Examples */
+.examples{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ex{
+  background:transparent;border:1px solid #1a2535;border-radius:6px;
+  padding:7px 9px;color:#64748b;font-size:10px;
+  cursor:pointer;text-align:left;line-height:1.4;
+  font-family:inherit;display:flex;gap:5px;
+  transition:all 0.15s
+}
+.ex:hover{background:#0c1621;color:#94a3b8;border-color:#2a3a4a}
+.ex:disabled{opacity:0.4;cursor:not-allowed}
+.ex span{color:#f59e0b;flex-shrink:0}
+
+/* Info box */
+.info{
+  background:#f59e0b08;border:1px solid #f59e0b20;border-radius:8px;
+  padding:10px 14px;font-size:11px;color:#4a5568;
+  line-height:1.7;text-align:center
+}
+.info strong{color:#f59e0b}
+
+/* State feedback */
+.state-searching{
+  display:none;
+  background:#0c1621;border:1px solid #1a2535;border-radius:8px;
+  padding:12px 14px;font-size:11px;color:#64748b;
+  align-items:center;gap:10px
+}
+.state-searching.show{display:flex}
+.dots{display:flex;gap:4px}
+.dp{width:5px;height:5px;border-radius:50%;background:#f59e0b;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+</style>
+
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-l">
+      <span class="logo">◈</span>
+      <span class="name">ARIA</span>
+      <span class="tag">POST</span>
+      <span class="vox">✦ VOXEL</span>
+    </div>
+    <div class="online">
+      <span class="odot"></span>
+      <span class="otxt">ONLINE</span>
+    </div>
+  </div>
+
+  <div class="search-area">
+    <span class="lbl">DESCREVE O TEU ICP</span>
+    <textarea
+      id="q"
+      rows="3"
+      placeholder="Ex: lojas de roupa em Lisboa sem presença digital..."
+    ></textarea>
+
+    <button class="btn-go" id="btn" onclick="go()">
+      PROCURAR ALVOS →
+    </button>
+
+    <div class="state-searching" id="state">
+      <div class="dots">
+        <span class="dp" style="animation-delay:0s"></span>
+        <span class="dp" style="animation-delay:.2s"></span>
+        <span class="dp" style="animation-delay:.4s"></span>
+      </div>
+      <span id="state-txt">A pesquisar e guardar no Airtable...</span>
+    </div>
+
+    <div class="divider">exemplos rápidos</div>
+
+    <div class="examples">
+      <button class="ex" onclick="set('Lojas de roupa em Lisboa sem presença digital')">
+        <span>→</span>Lojas de roupa em Lisboa
+      </button>
+      <button class="ex" onclick="set('Clínicas de estética no Porto sem presença digital')">
+        <span>→</span>Clínicas estética Porto
+      </button>
+      <button class="ex" onclick="set('Academias e ginásios em Gaia sem Meta Ads')">
+        <span>→</span>Ginásios Gaia sem Meta Ads
+      </button>
+      <button class="ex" onclick="set('Lojas de ténis e calçado sem Instagram ativo')">
+        <span>→</span>Calçado sem Instagram
+      </button>
+      <button class="ex" onclick="set('Restaurantes em Braga com poucos seguidores')">
+        <span>→</span>Restaurantes Braga
+      </button>
+      <button class="ex" onclick="set('Imobiliárias no Porto sem Google My Business')">
+        <span>→</span>Imobiliárias sem GMB
+      </button>
+    </div>
+
+    <div class="info">
+      A ARIA pesquisa empresas reais em Portugal, analisa as lacunas digitais,<br>
+      gera mensagens de abordagem e <strong>guarda automaticamente no Airtable</strong>.<br>
+      Os resultados aparecem aqui no chat a seguir.
+    </div>
+  </div>
+</div>
+
+<script>
+  function set(v) {
+    document.getElementById('q').value = v;
+    document.getElementById('q').focus();
+  }
+
+  function go() {
+    const q = document.getElementById('q').value.trim();
+    if (!q) {
+      document.getElementById('q').focus();
+      return;
+    }
+    // Disable UI
+    document.getElementById('btn').disabled = true;
+    document.getElementById('btn').textContent = '⟳ A pesquisar...';
+    document.getElementById('q').disabled = true;
+    document.querySelectorAll('.ex').forEach(b => b.disabled = true);
+    // Show state
+    document.getElementById('state').classList.add('show');
+    // Send to Claude
+    sendPrompt('ARIA_SEARCH:' + q);
+  }
+
+  // Enter key support
+  document.getElementById('q').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      go();
+    }
+  });
+</script>
